@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Github Activity Monitor</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 40px; background: #f6f8fa; color: #24292e; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .event { padding: 15px; border-bottom: 1px solid #e1e4e8; }
+        .timestamp { color: #586069; font-size: 0.85em; margin-top: 5px; }
+        b { color: #0366d6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Latest Github Actions</h1>
+        <div id="activity-log">Loading latest actions...</div>
+    </div>
+
+    <script>
+        function fetchUpdates() {
+            fetch('/webhook/api/events')
+                .then(response => response.json())
+                .then(data => {
+                    const log = document.getElementById('activity-log');
+                    if (data.length === 0) {
+                        log.innerHTML = "No events found. Try pushing to your repo!";
+                        return;
+                    }
+                    log.innerHTML = data.map(event => {
+                        let message = "";
+                        // Formatting based on the Assessment Requirements
+                        if (event.type === "PUSH") {
+                            message = `<b>${event.author}</b> pushed to <b>${event.to_branch}</b>`;
+                        } else if (event.type === "PULL_REQUEST") {
+                            message = `<b>${event.author}</b> submitted a pull request from <b>${event.from_branch}</b> to <b>${event.to_branch}</b>`;
+                        } else if (event.type === "MERGE") {
+                            message = `<b>${event.author}</b> merged branch <b>${event.from_branch}</b> to <b>${event.to_branch}</b>`;
+                        }
+                        return `<div class="event">${message}<div class="timestamp">on ${event.timestamp}</div></div>`;
+                    }).join('');
+                });
+        }
+
+        // Initial fetch
+        fetchUpdates();
+        // Requirement: Poll every 15 seconds
+        setInterval(fetchUpdates, 15000); 
+    </script>
+</body>
+</html>
